@@ -59,17 +59,27 @@ impl Oklink {
         headers
     }
 
-    pub async fn address_info(&self, address: &str) -> Result<AddressInformation, reqwest::Error> {
-        let params = [("chainShortName", CHAIN_SHORT_NAME), ("address", address)];
-        let url = format!("{}api/v5/explorer/address/address-summary", BASE_URL);
-        let response = self.client.get(&url)
+    async fn _get<T: for<'de> Deserialize<'de>>(
+        &self,
+        endpoint: &str,
+        params: &[(&str, &str)],
+    ) -> Result<T, reqwest::Error> {
+        let url = format!("{}{}", BASE_URL, endpoint);
+        let response = self
+            .client
+            .get(&url)
             .headers(self.headers().into())
             .query(&params)
             .send()
             .await?
-            .json::<AddressInformation>()
+            .json::<T>()
             .await?;
         Ok(response)
+    }
+
+    pub async fn address_info(&self, address: &str) -> Result<AddressInformation, reqwest::Error> {
+        let params = [("chainShortName", CHAIN_SHORT_NAME), ("address", address)];
+        self._get("api/v5/explorer/address/address-summary", &params).await
     }
 
     pub async fn evm_address_info(
@@ -88,19 +98,12 @@ impl Oklink {
             .json::<AddressInformation>()
             .await?;
         Ok(response)
+        self._get("api/v5/explorer/address/information-evm", &params).await
     }
 
     pub async fn address_active_chain(&self, address: &str) -> Result<AddressInformation, reqwest::Error> {
         let params = [("chainShortName", CHAIN_SHORT_NAME), ("address", address)];
-        let url = format!("{}api/v5/explorer/address/address-active-chain", BASE_URL);
-        let response = self.client.get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/address-active-chain", &params).await
     }
 
     pub async fn address_token_balance(&self, address: &str, protocol_type: ProtocolType, token_contract_address: Option<&str>, page: Option<&str>, limit: Option<&str>) -> Result<AddressInformation, reqwest::Error> {
@@ -118,15 +121,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/address/token-balance", BASE_URL);
-        let response = self.client.get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/token-balance", &params).await
     }
 
     pub async fn address_balance_details(
@@ -151,17 +146,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/address/address-balance-fills", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/address-balance-fills", &params).await
     }
 
     pub async fn address_balance_history(
@@ -178,17 +163,7 @@ impl Oklink {
         if let Some(token_contract_address) = token_contract_address {
             params.push(("tokenContractAddress", token_contract_address));
         }
-        let url = format!("{}api/v5/explorer/block/address-balance-history", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/block/address-balance-history", &params).await
     }
 
     pub async fn address_transaction_list(
@@ -227,15 +202,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/address/transaction-list", BASE_URL);
-        let response = self.client.get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/transaction-list", &params).await
     }
 
     pub async fn address_normal_transaction_list(
@@ -263,20 +230,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/address/normal-transaction-list",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/normal-transaction-list", &params).await
     }
 
     pub async fn address_internal_transaction_list(
@@ -304,20 +258,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/address/internal-transaction-list",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/internal-transaction-list", &params).await
     }
 
     pub async fn address_token_transaction_list(
@@ -342,17 +283,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/address/token-transaction-list", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/token-transaction-list", &params).await
     }
 
     pub async fn address_entity_labels(
@@ -360,17 +291,7 @@ impl Oklink {
         address: &str,
     ) -> Result<AddressInformation, reqwest::Error> {
         let params = [("chainShortName", CHAIN_SHORT_NAME), ("address", address)];
-        let url = format!("{}api/v5/explorer/address/entity-labels", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/entity-labels", &params).await
     }
 
     pub async fn batch_address_balances(
@@ -387,17 +308,7 @@ impl Oklink {
             ("chainShortName", CHAIN_SHORT_NAME),
             ("addresses", &addresses.join(",")),
         ];
-        let url = format!("{}api/v5/explorer/address/balance-multi", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/balance-multi", &params).await
     }
 
     pub async fn batch_address_token_balances(
@@ -426,17 +337,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/address/token-balance-multi", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/token-balance-multi", &params).await
     }
 
     pub async fn batch_address_normal_transaction_list(
@@ -473,20 +374,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/address/normal-transaction-list-multi",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/normal-transaction-list-multi", &params).await
     }
 
     pub async fn batch_address_internal_transaction_list(
@@ -537,6 +425,7 @@ impl Oklink {
             .json::<AddressInformation>()
             .await?;
         Ok(response)
+        self._get("api/v5/explorer/address/internal-transaction-list-multi", &params).await
     }
 
     pub async fn batch_address_token_transaction_list(
@@ -577,20 +466,7 @@ impl Oklink {
         if let Some(is_from_or_to) = is_from_or_to {
             params.push(("isFromOrTo", is_from_or_to));
         }
-        let url = format!(
-            "{}api/v5/explorer/address/token-transaction-list-multi",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/token-transaction-list-multi", &params).await
     }
 
     pub async fn rich_list(
@@ -601,17 +477,7 @@ impl Oklink {
         if let Some(address) = address {
             params.push(("address", address));
         }
-        let url = format!("{}api/v5/explorer/address/rich-list", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/rich-list", &params).await
     }
 
     pub async fn native_token_ranking(
@@ -626,20 +492,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/address/native-token-position-list",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/address/native-token-position-list", &params).await
     }
 
     pub async fn transaction_list(
@@ -662,17 +515,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/transaction/transaction-list", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/transaction-list", &params).await
     }
 
     pub async fn large_transaction_list(
@@ -695,20 +538,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/transaction/large-transaction-list",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/large-transaction-list", &params).await
     }
 
     pub async fn unconfirmed_transaction_list(
@@ -723,20 +553,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/transaction/unconfirmed-transaction-list",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/unconfirmed-transaction-list", &params).await
     }
 
     pub async fn internal_transaction_details(
@@ -752,20 +569,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/transaction/internal-transaction-detail",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/internal-transaction-detail", &params).await
     }
 
     pub async fn token_transaction_details(
@@ -785,20 +589,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/transaction/token-transaction-detail",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/token-transaction-detail", &params).await
     }
 
     pub async fn transaction_details(
@@ -806,17 +597,7 @@ impl Oklink {
         tx_id: &str,
     ) -> Result<AddressInformation, reqwest::Error> {
         let params = [("chainShortName", CHAIN_SHORT_NAME), ("txId", tx_id)];
-        let url = format!("{}api/v5/explorer/transaction/transaction-fills", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/transaction-fills", &params).await
     }
 
     pub async fn batch_transaction_details(
@@ -833,17 +614,7 @@ impl Oklink {
             ("chainShortName", CHAIN_SHORT_NAME),
             ("txIds", &tx_ids.join(",")),
         ];
-        let url = format!("{}api/v5/explorer/transaction/transaction-multi", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/transaction-multi", &params).await
     }
 
     pub async fn batch_internal_transaction_details(
@@ -860,20 +631,7 @@ impl Oklink {
             ("chainShortName", CHAIN_SHORT_NAME),
             ("txIds", &tx_ids.join(",")),
         ];
-        let url = format!(
-            "{}api/v5/explorer/transaction/internal-transaction-multi",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/internal-transaction-multi", &params).await
     }
 
     pub async fn batch_token_transaction_details(
@@ -902,20 +660,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/transaction/token-transfer-multi",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/transaction/token-transfer-multi", &params).await
     }
 
     pub async fn token_list(
@@ -950,17 +695,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/token/token-list", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/token-list", &params).await
     }
 
     pub async fn token_position_list(
@@ -983,17 +718,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/token/position-list", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/position-list", &params).await
     }
 
     pub async fn token_position_statistics(
@@ -1016,17 +741,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/token/position-statistics", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/position-statistics", &params).await
     }
 
     pub async fn token_transfer_details(
@@ -1053,17 +768,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/token/transaction-list", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/transaction-list", &params).await
     }
 
     pub async fn batch_token_transaction(
@@ -1086,20 +791,7 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!(
-            "{}api/v5/explorer/token/token-transaction-list-multi",
-            BASE_URL
-        );
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/token-transaction-list-multi", &params).await
     }
 
     pub async fn token_supply_history(
@@ -1112,17 +804,7 @@ impl Oklink {
             ("tokenContractAddress", token_contract_address),
             ("height", height),
         ];
-        let url = format!("{}api/v5/explorer/token/supply-history", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/supply-history", &params).await
     }
 
     pub async fn token_transaction_statistics(
@@ -1145,16 +827,6 @@ impl Oklink {
         if let Some(limit) = limit {
             params.push(("limit", limit));
         }
-        let url = format!("{}api/v5/explorer/token/transaction-stats", BASE_URL);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers().into())
-            .query(&params)
-            .send()
-            .await?
-            .json::<AddressInformation>()
-            .await?;
-        Ok(response)
+        self._get("api/v5/explorer/token/transaction-stats", &params).await
     }
 }
